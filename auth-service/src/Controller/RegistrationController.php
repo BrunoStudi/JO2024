@@ -13,7 +13,7 @@ use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 
 #[Route('api', name: 'api_')]
-class AuthController extends AbstractController
+class RegistrationController extends AbstractController
 {
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(
@@ -37,6 +37,7 @@ class AuthController extends AbstractController
         $user->setEmail($email);
         $user->setPassword($hasher->hashPassword($user, $password));
         $user->setSecurityKey(Uuid::v4()); //clé invisible
+        //$user->setRoles(['ROLE_ADMIN']);
 
         $errors = $validator->validate($user);
         if (count($errors) > 0) {
