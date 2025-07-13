@@ -4,12 +4,15 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import PrivateRoute from './services/PrivateRoute';
 import Navbar from './services/Navbar';
+import Home from './pages/Home';
+import './index.css';
 
 function App() {
   return (
       <Router>
         <Navbar />
         <Routes>
+          <Route path='/' element={<Home />} />
           <Route path='/login' element={<Login />} />
           <Route path='/logout' element={<Logout />} />
           <Route
