@@ -3,7 +3,7 @@ import Logout from './services/Logout';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import PrivateRoute from './services/PrivateRoute';
-import Navbar from './services/Navbar';
+import Navbar from './Composants/Navbar';
 import Home from './pages/Home';
 import './index.css';
 

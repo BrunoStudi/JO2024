@@ -1,6 +1,6 @@
 import { useState, Fragment } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../services/AuthContext";
 import { Transition } from "@headlessui/react";
 
 const Navbar = () => {
