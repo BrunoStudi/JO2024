@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('api', name: 'api_')]
 class RegistrationController extends AbstractController
@@ -37,7 +38,6 @@ class RegistrationController extends AbstractController
         $user->setEmail($email);
         $user->setPassword($hasher->hashPassword($user, $password));
         $user->setSecurityKey(Uuid::v4()); //clé invisible
-        //$user->setRoles(['ROLE_ADMIN']);
 
         $errors = $validator->validate($user);
         if (count($errors) > 0) {
@@ -49,6 +49,48 @@ class RegistrationController extends AbstractController
 
         return new JsonResponse([
             'message' => 'Utilisateur créé avec succès',
+            'user' => [
+                'id' => $user->getId(),
+                'email' => $user->getEmail(),
+            ],
+        ], 201);
+    }
+
+    #[IsGranted('ROLE_ADMIN')]
+    #[Route('/registerAdmin', name: 'register_admin', methods: ['POST'])]
+    public function registerAdmin(
+        Request $request,
+        EntityManagerInterface $em,
+        UserPasswordHasherInterface $hasher,
+        ValidatorInterface $validator
+    ): JsonResponse
+    {
+        $content = $request->getContent();
+        $data = json_decode($content, true);
+
+        $email = $data['email'] ?? null;
+        $password = $data['password'] ?? null;
+
+        if (!$email || !$password) {
+            return new JsonResponse(['error' => 'Email et mot de passe requis'], 400);
+        }
+
+        $user = new User();
+        $user->setEmail($email);
+        $user->setPassword($hasher->hashPassword($user, $password));
+        $user->setSecurityKey(Uuid::v4()); //clé invisible
+        $user->setRoles(['ROLE_ADMIN']);
+
+        $errors = $validator->validate($user);
+        if (count($errors) > 0) {
+            return new JsonResponse(['error' => (string) $errors], 400);
+        }
+
+        $em->persist($user);
+        $em->flush();
+
+        return new JsonResponse([
+            'message' => 'Administrateur créé avec succès',
             'user' => [
                 'id' => $user->getId(),
                 'email' => $user->getEmail(),
