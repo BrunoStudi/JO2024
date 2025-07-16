@@ -1,0 +1,11 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: API des Jeux Olympiques 2024
+            description: Cette documentation décrit les endpoints du service d'authentification.
+            version: 1.0.0
+
+    areas:
+        path_patterns:
+            - ^/api(?!/doc$)
+

@@ -14,6 +14,86 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use OpenApi\Attributes as OA; // PHP 8+
+
+
+#[OA\Post(
+    path: '/api/register',
+    summary: 'Inscription d\'un nouvel utilisateur',
+    tags: ['Création Utilisateurs'],
+    requestBody: new OA\RequestBody(
+        content: new OA\JsonContent(
+            type: 'object',
+            required: ['email', 'password'],
+            properties: [
+                new OA\Property(property: 'email', type: 'string', example: 'user@example.com'),
+                new OA\Property(property: 'password', type: 'string', example: 'secret123')
+            ]
+        )
+    ),
+    responses: [
+        new OA\Response(
+            response: 201,
+            description: 'Utilisateur créé avec succès'
+        ),
+        new OA\Response(
+            response: 400,
+            description: 'Erreur de validation ou données manquantes'
+        )
+    ]
+)]
+
+#[OA\Post(
+    path: '/api/registerAdmin',
+    summary: 'Créer un compte administrateur',
+    security: [['bearerAuth' => []]],
+    tags: ['Création Administrateur'],
+    requestBody: new OA\RequestBody(
+        required: true,
+        content: new OA\JsonContent(
+            required: ['email', 'password'],
+            type: 'object',
+            properties: [
+                new OA\Property(property: 'email', type: 'string', example: 'admin@example.com'),
+                new OA\Property(property: 'password', type: 'string', example: 'password123')
+            ]
+        )
+    ),
+    responses: [
+        new OA\Response(
+            response: 201,
+            description: 'Administrateur créé avec succès',
+            content: new OA\JsonContent(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'message', type: 'string', example: 'Administrateur créé avec succès'),
+                    new OA\Property(
+                        property: 'user',
+                        type: 'object',
+                        properties: [
+                            new OA\Property(property: 'id', type: 'integer', example: 1),
+                            new OA\Property(property: 'email', type: 'string', example: 'admin@example.com')
+                        ]
+                    )
+                ]
+            )
+        ),
+        new OA\Response(
+            response: 400,
+            description: 'Erreur de validation des données',
+            content: new OA\JsonContent(
+                type: 'object',
+                properties: [
+                    new OA\Property(property: 'error', type: 'string', example: 'Email et mot de passe requis')
+                ]
+            )
+        ),
+        new OA\Response(
+            response: 401,
+            description: 'Authentification requise (token JWT manquant ou invalide)',
+        )
+    ]
+)]
 
 #[Route('api', name: 'api_')]
 class RegistrationController extends AbstractController
