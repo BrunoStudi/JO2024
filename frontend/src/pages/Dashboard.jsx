@@ -1,8 +1,10 @@
+import { Link } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../services/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
   User,
-  BarChart2,
+  ShoppingCart,
   Bell,
   Home,
   LogOut
@@ -11,6 +13,12 @@ import {
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+        logout();            // supprime le token et met isLoggedIn à false
+        navigate("/");       // redirige vers la page d'accueil
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -25,20 +33,22 @@ const Dashboard = () => {
             {sidebarOpen ? 'Fermer' : 'Menu'}
           </button>
           <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
-            <Home size={20} /> <span>Accueil</span>
+            <Link to="/" className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+                <Home size={20} /> <span>Accueil</span>
+            </Link>
           </div>
           <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
             <User size={20} /> <span>Profil</span>
           </div>
           <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
-            <BarChart2 size={20} /> <span>Commandes</span>
+            <ShoppingCart size={20} /> <span>Commandes</span>
           </div>
           <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
             <Bell size={20} /> <span>Notifications</span>
           </div>
         </nav>
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="mt-8 flex items-center space-x-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition duration-200"
         >
           <LogOut size={20} /> <span>Se déconnecter</span>
@@ -60,10 +70,10 @@ const Dashboard = () => {
             <p><span className="font-medium">Rôles :</span> {user?.roles.join(', ')}</p>
           </div>
 
-          {/* Statistiques */}
+          {/* Commandes */}
           <div className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
             <div className="flex items-center mb-4">
-              <BarChart2 size={24} className="text-indigo-600 mr-2" />
+              <ShoppingCart size={24} className="text-indigo-600 mr-2" />
               <h2 className="text-xl font-semibold">Commandes</h2>
             </div>
             <p>Contenu à venir...</p>
