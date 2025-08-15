@@ -18,8 +18,6 @@ const Navbar = () => {
               alt="JO 2024"
               className="h-20 w-auto"
             />
-            {/* Si tu veux tu peux garder un petit texte */}
-            {/* <span className="text-xl font-bold hover:text-indigo-300">JO 2024</span> */}
           </Link>
 
           {/* Menu Desktop */}
@@ -44,9 +42,14 @@ const Navbar = () => {
                 </button>
               </>
             ) : (
+              <>
               <Link to="/login" className="hover:text-indigo-300 transition-colors">
                 Se connecter
               </Link>
+              <Link to="/register" className="hover:text-indigo-300 transition-colors">
+                S'enregistrer
+              </Link>
+              </>
             )}
           </div>
 
@@ -126,6 +129,7 @@ const Navbar = () => {
               </button>
             </>
           ) : (
+            <>
             <Link
               to="/login"
               onClick={() => setIsOpen(false)}
@@ -133,6 +137,14 @@ const Navbar = () => {
             >
               Se connecter
             </Link>
+            <Link
+              to="/register"
+              onClick={() => setIsOpen(false)}
+              className="block px-3 py-2 rounded hover:bg-indigo-500"
+            >
+              S'enregistrer
+            </Link>
+            </>
           )}
         </div>
       </Transition>
@@ -141,28 +153,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
-
-
-/*import { Link } from "react-router-dom";
-import { useAuth } from "./AuthContext";
-
-const Navbar = () => {
-    const { isLoggedIn } = useAuth();
-
-    return (
-        <nav style={{ marginBottom: '20px' }}>
-            <Link to="/">Accueil</Link> |{' '}
-            {isLoggedIn ? (
-                <>
-                  <Link to="/Dashboard">Dashboard</Link> | {' '}
-                  <Link to="/logout">Se déconnecter</Link>
-                </>
-            ) : (
-                  <Link to="/login">Se connecter</Link>
-            )}
-        </nav>
-    );
-};
-
-export default Navbar;*/
