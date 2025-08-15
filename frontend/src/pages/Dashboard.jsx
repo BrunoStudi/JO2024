@@ -1,12 +1,86 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useAuth } from "../services/AuthContext";
+import {
+  User,
+  BarChart2,
+  Bell,
+  Home,
+  LogOut
+} from "lucide-react";
 
 const Dashboard = () => {
-    return ( 
-        <div>
-            <h2>Bienvenue sur le Dashboard !</h2>
-            <Link to="/logout">Se déconnecter</Link>
+  const { user, logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  return (
+    <div className="flex min-h-screen bg-gray-100">
+      {/* Sidebar */}
+      <div className={`bg-indigo-700 text-white w-64 p-6 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-64'} md:translate-x-0 fixed md:static inset-y-0 z-50`}>
+        <h2 className="text-2xl font-bold mb-8">Mon Dashboard</h2>
+        <nav className="space-y-4">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="md:hidden bg-indigo-600 px-3 py-2 rounded"
+          >
+            {sidebarOpen ? 'Fermer' : 'Menu'}
+          </button>
+          <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+            <Home size={20} /> <span>Accueil</span>
+          </div>
+          <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+            <User size={20} /> <span>Profil</span>
+          </div>
+          <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+            <BarChart2 size={20} /> <span>Commandes</span>
+          </div>
+          <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+            <Bell size={20} /> <span>Notifications</span>
+          </div>
+        </nav>
+        <button
+          onClick={logout}
+          className="mt-8 flex items-center space-x-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded transition duration-200"
+        >
+          <LogOut size={20} /> <span>Se déconnecter</span>
+        </button>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 ml-0 md:ml-8 p-6 transition-all duration-300">
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Tableau de bord</h1>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Carte Utilisateur */}
+          <div className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
+            <div className="flex items-center mb-4">
+              <User size={24} className="text-indigo-600 mr-2" />
+              <h2 className="text-xl font-semibold">Mes informations</h2>
+            </div>
+            <p><span className="font-medium">Email :</span> {user?.username}</p>
+            <p><span className="font-medium">Rôles :</span> {user?.roles.join(', ')}</p>
+          </div>
+
+          {/* Statistiques */}
+          <div className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
+            <div className="flex items-center mb-4">
+              <BarChart2 size={24} className="text-indigo-600 mr-2" />
+              <h2 className="text-xl font-semibold">Commandes</h2>
+            </div>
+            <p>Contenu à venir...</p>
+          </div>
+
+          {/* Notifications */}
+          <div className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
+            <div className="flex items-center mb-4">
+              <Bell size={24} className="text-indigo-600 mr-2" />
+              <h2 className="text-xl font-semibold">Notifications</h2>
+            </div>
+            <p>Contenu à venir...</p>
+          </div>
         </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default Dashboard;
