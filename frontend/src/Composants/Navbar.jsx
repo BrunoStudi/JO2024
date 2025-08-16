@@ -2,10 +2,12 @@ import { useState, Fragment } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../services/AuthContext";
 import { Transition } from "@headlessui/react";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const { isLoggedIn, logout } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <nav className="bg-indigo-700 text-white shadow py-2">
@@ -35,6 +37,7 @@ const Navbar = () => {
                   onClick={() => {
                     logout();
                     setIsOpen(false);
+                    navigate("/");
                   }}
                   className="hover:text-indigo-300 transition-colors"
                 >
@@ -122,6 +125,7 @@ const Navbar = () => {
                 onClick={() => {
                   logout();
                   setIsOpen(false);
+                  navigate("/");
                 }}
                 className="w-full text-left px-3 py-2 rounded hover:bg-indigo-500"
               >
