@@ -1,13 +1,19 @@
 import axios from 'axios';
 
-const API = axios.create({
-    baseURL: 'http://127.0.0.1:8000/api',
-    headers: {
-        'Content-type': 'application/json'
-    }
+// Pour AuthService (login, register)
+export const APIAuth = axios.create({
+  baseURL: "http://127.0.0.1:8000/api",
+  withCredentials: true,
 });
 
-API.interceptors.request.use((config) => {
+// Pour UserService (profil)
+export const APIUser = axios.create({
+  baseURL: "http://127.0.0.1:8001/api",
+  withCredentials: true,
+});
+
+// Ajouter le token JWT à toutes les requêtes AuthService
+APIAuth.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -15,4 +21,11 @@ API.interceptors.request.use((config) => {
     return config;
 });
 
-export default API;
+// Ajouter le token JWT à toutes les requêtes UserService
+APIUser.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});

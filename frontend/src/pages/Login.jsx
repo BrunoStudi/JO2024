@@ -1,5 +1,5 @@
 import { useState } from "react";
-import API from "../services/Api";
+import { APIAuth } from "../services/Api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../services/AuthContext";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
@@ -15,7 +15,7 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await API.post('/login', { email, password });
+            const response = await APIAuth.post('/login', { email, password });
             login(response.data.token);
             setError('');
             navigate('/dashboard');

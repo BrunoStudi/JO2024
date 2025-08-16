@@ -7,6 +7,7 @@ import Navbar from './Composants/Navbar';
 import Home from './pages/Home';
 import './index.css';
 import Register from './pages/Register';
+import Profil from './pages/Profil';
 
 function App() {
   return (
@@ -22,6 +23,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+            />
+            <Route
+            path='/profil'
+            element={
+              <PrivateRoute>
+                <Profil />
               </PrivateRoute>
             }
             />

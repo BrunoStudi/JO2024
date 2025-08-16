@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaUser, FaLock, FaEnvelope } from "react-icons/fa";
 import { Eye, EyeOff } from "lucide-react";
-import API from "../services/Api";
+import { APIAuth } from "../services/Api";
 import { useNavigate } from "react-router-dom";
 
 const Register = () => {
@@ -29,7 +29,7 @@ const Register = () => {
         if (passwordMatchError) return; // empêche l'envoi si mots de passe différents
 
         try {
-            await API.post("/register", { username, email, password });
+            await APIAuth.post("/register", { username, email, password });
             navigate("/login");
         } catch {
             setError("Erreur lors de l'inscription");
