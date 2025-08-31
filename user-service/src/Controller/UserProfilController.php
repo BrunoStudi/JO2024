@@ -11,10 +11,10 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('api/user', name: 'api_user')]
+#[Route('api/user', name: 'api_user_')]
 class UserProfilController extends AbstractController
 {
-    #[Route('/profile', name: 'profile', methods: ['GET', 'POST'])]
+    #[Route('/profile', name: 'profile', methods: ['GET', 'POST', 'PUT'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function handleProfile(
         Request $request,

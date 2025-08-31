@@ -7,7 +7,9 @@ import Navbar from './Composants/Navbar';
 import Home from './pages/Home';
 import './index.css';
 import Register from './pages/Register';
+import RegisterAdmin from './pages/RegisterAdmin';
 import Profil from './pages/Profil';
+import Admin from './pages/Admin';
 
 function App() {
   return (
@@ -17,6 +19,7 @@ function App() {
           <Route path='/' element={<Home />} />
           <Route path='/login' element={<Login />} />
           <Route path='/register' element={<Register />} />
+          <Route path="/registerAdmin" element={<RegisterAdmin />} /> 
           <Route path='/logout' element={<Logout />} />
           <Route
             path='/dashboard'
@@ -31,6 +34,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Profil />
+              </PrivateRoute>
+            }
+            />
+            <Route
+            path='/admin'
+            element={
+              <PrivateRoute>
+                <Admin />
               </PrivateRoute>
             }
             />

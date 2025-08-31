@@ -7,6 +7,7 @@ const Sidebar = () => {
   const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -28,6 +29,13 @@ const Sidebar = () => {
             <Home size={20} /> <span>Accueil</span>
           </Link>
         </div>
+        {user?.roles.includes("ROLE_ADMIN") && (
+        <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+            <Link to="/admin" className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+              <User size={20} /> <span>Administration</span>
+            </Link>
+        </div>
+        )}
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
           <Link to="/Profil" className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
             <User size={20} /> <span>Profil</span>
