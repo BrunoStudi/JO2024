@@ -14,6 +14,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('api/user', name: 'api_user_')]
 class UserProfilController extends AbstractController
 {
+
     #[Route('/profile', name: 'profile', methods: ['GET', 'POST', 'PUT'])]
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function handleProfile(
@@ -44,7 +45,7 @@ class UserProfilController extends AbstractController
             ], 200);
         }
 
-        // POST : créer ou mettre à jour
+        // POST/PUT : créer ou mettre à jour
         $data = json_decode($request->getContent(), true);
 
         if (!$profile) {

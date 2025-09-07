@@ -25,12 +25,13 @@ const Dashboard = () => {
               <User size={24} className="text-indigo-600 mr-2" />
               <h2 className="text-xl font-semibold">Mes informations</h2>
             </div>
-            <p><span className="font-medium">Email :</span> {authUser?.username}</p>
-            <p><span className="font-medium">Prénom :</span> {userProfile?.firstName || "Non renseigné"}</p>
-            <p><span className="font-medium">Nom :</span> {userProfile?.lastName || "Non renseigné"}</p>
-            <p><span className="font-medium">Adresse :</span> {userProfile?.address || "Non renseignée"}</p>
-            <p><span className="font-medium">Téléphone :</span> {userProfile?.phone || "Non renseigné"}</p>
-            <p><span className="font-medium">Rôles :</span> {roles.length ? roles?.join(', ') : "Aucun rôle"}</p>
+            <p><strong><span className="font-medium">Email :</span></strong> {authUser?.username}</p>
+            {/*<p><strong><span className="font-medium">Fraude:</span></strong> {userProfile?.isKeyActive === false ? "Oui" : "Non"}</p>*/}
+            <p><strong><span className="font-medium">Prénom :</span></strong> {userProfile?.firstName || "Non renseigné"}</p>
+            <p><strong><span className="font-medium">Nom :</span></strong> {userProfile?.lastName || "Non renseigné"}</p>
+            <p><strong><span className="font-medium">Adresse :</span></strong> {userProfile?.address || "Non renseignée"}</p>
+            <p><strong><span className="font-medium">Téléphone :</span></strong> {userProfile?.phone || "Non renseigné"}</p>
+            <p><strong><span className="font-medium">Rôles :</span></strong> {roles.length ? roles?.join(', ') : "Aucun rôle"}</p>
           </div>
 
           {/* Commandes */}
