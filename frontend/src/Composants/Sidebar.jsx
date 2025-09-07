@@ -16,7 +16,7 @@ const Sidebar = () => {
 
   return (
     <div className={`bg-indigo-700 text-white w-64 p-6 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-64'} md:translate-x-0 fixed md:static inset-y-0 z-50`}>
-      <h2 className="text-2xl font-bold mb-8">Mon Dashboard</h2>
+      <h2 className="text-2xl font-bold mb-8">Menu</h2>
       <nav className="space-y-4">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -38,11 +38,11 @@ const Sidebar = () => {
         )}
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
           <Link to="/Profil" className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
-            <User size={20} /> <span>Profil</span>
+            <User size={20} /> <span>Mon profil</span>
           </Link>
         </div>
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
-          <ShoppingCart size={20} /> <span>Commandes</span>
+          <ShoppingCart size={20} /> <span>Mes commandes</span>
         </div>
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
           <Bell size={20} /> <span>Notifications</span>

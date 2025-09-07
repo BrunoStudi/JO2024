@@ -4,7 +4,7 @@ import { useUser } from "../services/UserContext"; // Hook pour récupérer user
 import Sidebar from "../Composants/Sidebar";
 
 export default function Admin() {
-  const { user } = useUser(); // récupérer user connecté
+  const { user } = useUser(); // récupérer l'utilisateur connecté
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,10 +59,10 @@ export default function Admin() {
           <thead>
             <tr className="bg-gray-100">
               <th className="border px-4 py-2 text-left">ID</th>
-              <th className="border px-4 py-2 text-left">Email</th>
+              <th className="border px-4 py-2 text-left">Email Utilisateur</th>
               <th className="border px-4 py-2 text-left">Roles</th>
               <th className="border px-4 py-2 text-left">Clé Utilisateur</th>
-              <th className="border px-4 py-2 text-left">Statut Clé</th>
+              <th className="border px-4 py-2 text-left">Action</th>
             </tr>
           </thead>
           <tbody>

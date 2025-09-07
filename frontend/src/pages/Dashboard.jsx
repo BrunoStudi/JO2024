@@ -16,7 +16,7 @@ const Dashboard = () => {
 
       {/* Main content */}
       <div className="flex-1 ml-0 md:ml-8 p-6 transition-all duration-300">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Tableau de bord</h1>
+        <h1 className="text-3xl font-bold mb-6 text-gray-800">Mon tableau de bord</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Carte Utilisateur */}
@@ -37,7 +37,7 @@ const Dashboard = () => {
           <div className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow duration-200">
             <div className="flex items-center mb-4">
               <ShoppingCart size={24} className="text-indigo-600 mr-2" />
-              <h2 className="text-xl font-semibold">Commandes</h2>
+              <h2 className="text-xl font-semibold">Mes commandes</h2>
             </div>
             <p>Contenu à venir...</p>
           </div>
