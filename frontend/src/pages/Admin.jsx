@@ -1,18 +1,33 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useUser } from "../services/UserContext";
+import { useUser } from "../services/UserContext"; // Hook pour récupérer user
 import Sidebar from "../Composants/Sidebar";
 
 export default function Admin() {
-  const { user } = useUser();
+  const { user } = useUser(); // récupérer user connecté
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const toggleKey = async (userId, currentStatus) => {
+  try {
+    await axios.patch(
+      `http://127.0.0.1:8000/api/admin/user/${userId}/revoke-key`,
+      { isKeyActive: !currentStatus },
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    );
+    // Mettre à jour le tableau localement
+    setUsers(users.map(u => u.id === userId ? { ...u, isKeyActive: !currentStatus } : u));
+  } catch (err) {
+    console.error("Erreur lors du changement du statut de la clé:", err);
+  }
+};
+
   useEffect(() => {
     /*if (!user || !user.roles.includes("ROLE_ADMIN")) {
       window.location.href = "/dashboard"; // redirige si pas admin
-      }*/
+      return;
+    }*/
 
     axios
       .get("http://127.0.0.1:8000/api/admin/users", {
@@ -31,21 +46,23 @@ export default function Admin() {
       });
   }, [user]);
 
-  if (loading) return <p>Chargement...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <p className="p-6">Chargement...</p>;
+  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
+
       <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-4">Administration</h1>
-        <table className="w-full border border-gray-300">
+        <h1 className="text-2xl font-bold mb-6">Administration</h1>
+        <table className="w-full border border-gray-300 bg-white rounded-lg overflow-hidden">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border px-4 py-2">ID</th>
-              <th className="border px-4 py-2">Email</th>
-              <th className="border px-4 py-2">Roles</th>
-              <th className="border px-4 py-2">Clé de sécurité</th>
+              <th className="border px-4 py-2 text-left">ID</th>
+              <th className="border px-4 py-2 text-left">Email</th>
+              <th className="border px-4 py-2 text-left">Roles</th>
+              <th className="border px-4 py-2 text-left">Clé Utilisateur</th>
+              <th className="border px-4 py-2 text-left">Statut Clé</th>
             </tr>
           </thead>
           <tbody>
@@ -54,7 +71,24 @@ export default function Admin() {
                 <td className="border px-4 py-2">{u.id}</td>
                 <td className="border px-4 py-2">{u.email}</td>
                 <td className="border px-4 py-2">{u.roles.join(", ")}</td>
-                <td className="border px-4 py-2">{u.publicKey || "—"}</td>
+                <td className="border px-4 py-2">
+                  {u.publicKey || "—"}{" "}
+                  <span
+                    className={`ml-2 px-2 py-1 rounded text-white ${u.isKeyActive ? "bg-green-500" : "bg-red-500"
+                      }`}
+                  >
+                    {u.isKeyActive ? "Active" : "Bloquée"}
+                  </span>
+                </td>
+                <td className="border px-4 py-2">
+                  <button
+                    className={`px-2 py-1 rounded text-white ${u.isKeyActive ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
+                      }`}
+                    onClick={() => toggleKey(u.id, u.isKeyActive)}
+                  >
+                    {u.isKeyActive ? "Bloquer" : "Réactiver"}
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>

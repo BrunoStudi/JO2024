@@ -25,6 +25,7 @@ class AdminUsersListController extends AbstractController
                 'email' => $user->getEmail(),
                 'roles' => $user->getRoles(),
                 'publicKey' => $user->getSecurityKey(),
+                'isKeyActive' => $user->getIsKeyActive()
             ];
         }
 

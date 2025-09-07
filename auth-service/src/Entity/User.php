@@ -24,7 +24,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->securityKey = $securityKey;
         return $this;
     }
-    
+
+    #[ORM\Column(type: "boolean")]
+    private bool $isKeyActive = true;
+
+    public function getIsKeyActive(): bool
+    {
+        return $this->isKeyActive;
+    }
+
+    public function setIsKeyActive(bool $status): self
+    {
+        $this->isKeyActive = $status;
+        return $this;
+    }
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -115,7 +129,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function __serialize(): array
     {
         $data = (array) $this;
-        $data["\0".self::class."\0password"] = hash('crc32c', $this->password);
+        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password);
 
         return $data;
     }
