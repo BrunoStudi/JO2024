@@ -10,12 +10,14 @@ import Register from './pages/Register';
 import RegisterAdmin from './pages/RegisterAdmin';
 import Profil from './pages/Profil';
 import Admin from './pages/Admin';
+import Apidoc from "./pages/Apidoc";
 
 function App() {
   return (
       <Router>
         <Navbar />
         <Routes>
+          <Route path="/doc-api" element={<Apidoc />} />
           <Route path='/' element={<Home />} />
           <Route path='/login' element={<Login />} />
           <Route path='/register' element={<Register />} />
