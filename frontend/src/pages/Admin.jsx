@@ -116,7 +116,7 @@ export default function Admin() {
         {/* SECTION UTILISATEURS */}
         <div>
           <h1 className="text-2xl font-bold mb-6">
-            Administration - Utilisateurs
+            Gestion des Utilisateurs
           </h1>
 
           <div className="overflow-x-auto hidden md:block">
@@ -216,7 +216,7 @@ export default function Admin() {
               <thead>
                 <tr className="bg-gray-100">
                   {/*<th className="border px-4 py-2 text-left">ID</th>*/}
-                  <th className="border px-4 py-2 text-left">Nom</th>
+                  <th className="border px-4 py-2 text-left">Offre</th>
                   <th className="border px-4 py-2 text-left">Description</th>
                   <th className="border px-4 py-2 text-left">Quantité</th>
                   <th className="border px-4 py-2 text-left">Prix (€)</th>
