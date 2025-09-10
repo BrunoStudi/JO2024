@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../services/AuthContext";
-import { User, Settings, ShoppingCart, Bell, Home, LogOut } from "lucide-react";
+import { User, Settings, Ticket, ShoppingCart, Bell, Home, LogOut } from "lucide-react";
 
 const Sidebar = () => {
   const { logout } = useAuth();
@@ -27,6 +27,11 @@ const Sidebar = () => {
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
           <Link to="/" className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
             <Home size={20} /> <span>Accueil</span>
+          </Link>
+        </div>
+        <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+          <Link to="/reservation" className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+            <Ticket size={20} /> <span>Réservation</span>
           </Link>
         </div>
         {user?.roles.includes("ROLE_ADMIN") && (

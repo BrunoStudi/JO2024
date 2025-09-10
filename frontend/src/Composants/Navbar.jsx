@@ -28,6 +28,10 @@ const Navbar = () => {
               Accueil
             </Link>
 
+            <Link to="/reservation" className="hover:text-indigo-300 transition-colors">
+              Réservation
+            </Link>
+
             {isLoggedIn ? (
               <>
                 <Link to="/dashboard" className="hover:text-indigo-300 transition-colors">
@@ -111,6 +115,13 @@ const Navbar = () => {
             className="block px-3 py-2 rounded hover:bg-indigo-500"
           >
             Accueil
+          </Link>
+          <Link
+            to="/reservation"
+            onClick={() => setIsOpen(false)}
+            className="block px-3 py-2 rounded hover:bg-indigo-500"
+          >
+            Réservation
           </Link>
           {isLoggedIn ? (
             <>
