@@ -68,7 +68,7 @@ class TicketOfferController extends AbstractController
         return $this->json(['message' => 'Offre supprimée avec succès']);
     }
 
-    #[Route('/offers/{id}', name: 'update', methods: ['PATCH'])]
+    #[Route('/offers/{id}', name: 'update', methods: ['PATCH', 'PUT'])]
     public function update(int $id, Request $request, EntityManagerInterface $em): JsonResponse
     {
         $offer = $em->getRepository(TicketOffer::class)->find($id);
