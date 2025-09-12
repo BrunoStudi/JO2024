@@ -18,7 +18,12 @@ const Login = () => {
             const response = await APIAuth.post('/login', { email, password });
             login(response.data.token);
             setError('');
-            navigate('/dashboard');
+
+            // 🔹 Vérifie s'il y a une redirection en attente
+            const redirectTo = localStorage.getItem("redirectAfterLogin") || "/dashboard";
+            localStorage.removeItem("redirectAfterLogin"); // nettoyage
+            navigate(redirectTo);
+
         } catch {
             setError('Email ou mot de passe invalide');
         }

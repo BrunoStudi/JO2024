@@ -11,6 +11,7 @@ import RegisterAdmin from './pages/RegisterAdmin';
 import Profil from './pages/Profil';
 import Admin from './pages/Admin';
 import Apidoc from "./pages/Apidoc";
+import Reservation from "./pages/Reservation";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Routes>
           <Route path="/doc-api" element={<Apidoc />} />
           <Route path='/' element={<Home />} />
+          <Route path='/reservation' element={<Reservation />} />
           <Route path='/login' element={<Login />} />
           <Route path='/register' element={<Register />} />
           <Route path="/registerAdmin" element={<RegisterAdmin />} /> 
