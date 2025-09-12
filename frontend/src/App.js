@@ -12,6 +12,7 @@ import Profil from './pages/Profil';
 import Admin from './pages/Admin';
 import Apidoc from "./pages/Apidoc";
 import Reservation from "./pages/Reservation";
+import Checkout from './pages/Checkout';
 
 function App() {
   return (
@@ -38,6 +39,14 @@ function App() {
             element={
               <PrivateRoute>
                 <Profil />
+              </PrivateRoute>
+            }
+            />
+            <Route
+            path='/checkout'
+            element={
+              <PrivateRoute>
+                <Checkout />
               </PrivateRoute>
             }
             />

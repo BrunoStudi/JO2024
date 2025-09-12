@@ -41,14 +41,18 @@ const Sidebar = () => {
             </Link>
         </div>
         )}
+        {user?.roles.includes("ROLE_USER") && (
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
           <Link to="/Profil" className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
             <User size={20} /> <span>Mon profil</span>
           </Link>
         </div>
+        )}
+        {user?.roles.includes("ROLE_USER") && (
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
           <ShoppingCart size={20} /> <span>Mes commandes</span>
         </div>
+        )}
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
           <Bell size={20} /> <span>Notifications</span>
         </div>

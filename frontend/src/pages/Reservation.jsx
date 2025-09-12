@@ -65,9 +65,13 @@ export default function Reservation() {
             return;
         }
 
-        // Ici tu appelleras ton API réservation
-        console.log("Réservation validée !", selected);
+        // 🔹 Sauvegarde du panier avant checkout (sécurité)
+        localStorage.setItem("cart", JSON.stringify(selected));
+
+        // 🔹 Redirection vers checkout
+        navigate("/checkout");
     };
+
 
     if (loading) return <p className="p-6">Chargement des offres...</p>;
     if (error) return <p className="p-6 text-red-500">{error}</p>;
