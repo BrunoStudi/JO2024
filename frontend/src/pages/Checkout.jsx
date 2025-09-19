@@ -1,19 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import Sidebar from "../Composants/Sidebar";
 
 export default function Checkout() {
   const [cart, setCart] = useState({});
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [paying, setPaying] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [orderID, setOrderID] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 🔹 Récupération panier depuis localStorage
     const savedCart = JSON.parse(localStorage.getItem("cart")) || {};
     setCart(savedCart);
 
+    // 🔹 Récupération des offres
     fetch("http://127.0.0.1:8002/api/tickets/offers")
       .then((res) => res.json())
       .then((data) => {
@@ -26,56 +29,14 @@ export default function Checkout() {
       });
   }, []);
 
-  const handlePayment = async () => {
-    setPaying(true);
-
-    const token = localStorage.getItem("token"); // ou comment tu stockes ton JWT
-    const cartEntries = Object.entries(cart);
-
-    const payload = cartEntries.map(([offerId, qty]) => {
-      const offer = offers.find((o) => o.id === parseInt(offerId));
-      return {
-        name: offer?.name || "Offre inconnue",
-        price: offer?.price || 0,
-        qty,
-        total: (offer?.price || 0) * qty,
-      };
-    });
-
-    try {
-      const res = await fetch("http://127.0.0.1:8003/api/pay/paypal", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({ items: payload }),
-      });
-
-      if (!res.ok) throw new Error("Erreur lors du paiement");
-
-      const data = await res.json();
-
-      // 🔹 Si le microservice renvoie un lien PayPal pour redirection
-      if (data.approvalUrl) {
-        window.location.href = data.approvalUrl;
-      } else {
-        setSuccess(true);
-        localStorage.removeItem("cart");
-        setTimeout(() => navigate("/"), 3000);
-      }
-    } catch (err) {
-      console.error("Erreur paiement PayPal:", err);
-      alert("Le paiement a échoué. Veuillez réessayer.");
-    } finally {
-      setPaying(false);
-    }
-  };
-
-  if (loading) return <p className="p-6">Chargement du panier...</p>;
-
   const cartEntries = Object.entries(cart);
 
+  const total = cartEntries.reduce((sum, [offerId, qty]) => {
+    const offer = offers.find((o) => o.id === parseInt(offerId));
+    return sum + (offer ? offer.price * qty : 0);
+  }, 0);
+
+  if (loading) return <p className="p-6">Chargement du panier...</p>;
   if (cartEntries.length === 0)
     return (
       <div className="flex min-h-screen bg-gray-100">
@@ -86,10 +47,53 @@ export default function Checkout() {
       </div>
     );
 
-  const total = cartEntries.reduce((sum, [offerId, qty]) => {
-    const offer = offers.find((o) => o.id === parseInt(offerId));
-    return sum + (offer ? offer.price * qty : 0);
-  }, 0);
+  const createOrder = async (data, actions) => {
+    const token = localStorage.getItem("token"); // JWT
+    const payload = cartEntries.map(([offerId, qty]) => {
+      const offer = offers.find((o) => o.id === parseInt(offerId));
+      return offer
+        ? { name: offer.name, price: offer.price, qty, method: "paypal" }
+        : null;
+    }).filter(Boolean);
+
+    const res = await fetch("http://127.0.0.1:8003/api/pay/paypal", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ items: payload }),
+    });
+
+    const dataResp = await res.json();
+    if (!res.ok) throw new Error(dataResp.error || "Erreur PayPal");
+
+    setOrderID(dataResp.id);
+    return dataResp.id;
+  };
+
+  const onApprove = async (data, actions) => {
+    // Capture de paiement
+    await fetch(`http://127.0.0.1:8003/api/pay/capture/${data.orderID}`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+
+    setSuccess(true);
+    localStorage.removeItem("cart");
+
+    // Redirection après succès
+    setTimeout(() => {
+      navigate("/");
+    }, 3000);
+  };
+
+  const onError = (err) => {
+    console.error("Erreur PayPal:", err);
+    alert("Une erreur est survenue lors du paiement PayPal.");
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -115,13 +119,14 @@ export default function Checkout() {
         </div>
 
         {!success ? (
-          <button
-            onClick={handlePayment}
-            disabled={paying}
-            className={`w-full px-4 py-2 text-white font-semibold rounded ${paying ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
-          >
-            {paying ? "Paiement en cours..." : "Payer avec PayPal"}
-          </button>
+          <PayPalScriptProvider options={{ "client-id": "AYBYWNdo8fpd7eHC9AFbvT28HPeEmXPhk8dQSc15i-ou9PLb--iZQRLcv5sgoGLuAfJ15YMpNzyFl6Ay", currency: "EUR" }}>
+            <PayPalButtons
+              style={{ layout: "vertical", color: "gold", shape: "rect", label: "paypal" }}
+              createOrder={createOrder}
+              onApprove={onApprove}
+              onError={onError}
+            />
+          </PayPalScriptProvider>
         ) : (
           <p className="text-green-600 font-bold text-center text-lg">
             Paiement réussi ! Vous allez être redirigé...
