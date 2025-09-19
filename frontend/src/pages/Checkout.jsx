@@ -75,7 +75,7 @@ export default function Checkout() {
       if (captureData.status === "success") {
         setSuccess(true);
         localStorage.removeItem("cart");
-        setTimeout(() => navigate("/"), 3000);
+        setTimeout(() => navigate("/dashboard"), 3000);
       } else {
         console.error("Erreur capture:", captureData);
       }

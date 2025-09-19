@@ -6,12 +6,14 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/pay', name: 'api_pay_')]
 class PaymentController extends AbstractController
 {
     // 🔹 Création d'une commande PayPal
     #[Route('/paypal', name: 'paypal', methods: ['POST'])]
+    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function createPaypalOrder(Request $request): JsonResponse
     {
         $user = $this->getUser();
