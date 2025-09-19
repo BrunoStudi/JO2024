@@ -11,11 +11,9 @@ export default function Checkout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Récupération panier
     const savedCart = JSON.parse(localStorage.getItem("cart")) || {};
     setCart(savedCart);
 
-    // 🔹 Récupération des offres pour avoir les infos de nom, prix
     fetch("http://127.0.0.1:8002/api/tickets/offers")
       .then((res) => res.json())
       .then((data) => {
@@ -28,22 +26,50 @@ export default function Checkout() {
       });
   }, []);
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     setPaying(true);
 
-    // 🔹 Simuler paiement
-    setTimeout(() => {
+    const token = localStorage.getItem("token"); // ou comment tu stockes ton JWT
+    const cartEntries = Object.entries(cart);
+
+    const payload = cartEntries.map(([offerId, qty]) => {
+      const offer = offers.find((o) => o.id === parseInt(offerId));
+      return {
+        name: offer?.name || "Offre inconnue",
+        price: offer?.price || 0,
+        qty,
+        total: (offer?.price || 0) * qty,
+      };
+    });
+
+    try {
+      const res = await fetch("http://127.0.0.1:8003/api/pay/paypal", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ items: payload }),
+      });
+
+      if (!res.ok) throw new Error("Erreur lors du paiement");
+
+      const data = await res.json();
+
+      // 🔹 Si le microservice renvoie un lien PayPal pour redirection
+      if (data.approvalUrl) {
+        window.location.href = data.approvalUrl;
+      } else {
+        setSuccess(true);
+        localStorage.removeItem("cart");
+        setTimeout(() => navigate("/"), 3000);
+      }
+    } catch (err) {
+      console.error("Erreur paiement PayPal:", err);
+      alert("Le paiement a échoué. Veuillez réessayer.");
+    } finally {
       setPaying(false);
-      setSuccess(true);
-
-      // 🔹 Vider le panier après paiement
-      localStorage.removeItem("cart");
-
-      // 🔹 Redirection vers page de confirmation ou accueil
-      setTimeout(() => {
-        navigate("/"); // ou "/confirmation" si tu as une page
-      }, 3000);
-    }, 2000); // 2 secondes pour simuler le paiement
+    }
   };
 
   if (loading) return <p className="p-6">Chargement du panier...</p>;
@@ -68,7 +94,6 @@ export default function Checkout() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
-
       <div className="flex-1 p-6">
         <h1 className="text-2xl font-bold mb-6">Validation de votre réservation</h1>
 
@@ -95,7 +120,7 @@ export default function Checkout() {
             disabled={paying}
             className={`w-full px-4 py-2 text-white font-semibold rounded ${paying ? "bg-gray-400" : "bg-green-600 hover:bg-green-700"}`}
           >
-            {paying ? "Paiement en cours..." : "Payer maintenant"}
+            {paying ? "Paiement en cours..." : "Payer avec PayPal"}
           </button>
         ) : (
           <p className="text-green-600 font-bold text-center text-lg">

@@ -3,39 +3,47 @@
 namespace App\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\User\UserInterface;
 
-#[Route('/api/payment', name: 'api_payment_')]
+#[Route('/api/pay', name: 'api_pay_')]
 class PaymentController extends AbstractController
 {
-    #[Route('/checkout', name: 'checkout', methods: ['POST'])]
-    public function checkout(Request $request): JsonResponse
+    #[Route('/paypal', name: 'paypal', methods: ['POST'])]
+    public function paypal(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        // Récupérer l'ID de l'utilisateur depuis le JWT
-        $userId = $request->headers->get('X-USER-ID'); // Le frontend doit envoyer le userId ici
-        if (!$userId) {
-            return new JsonResponse(['error' => 'Utilisateur non authentifié'], 401);
+        $user = $this->getUser(); // récupère l'utilisateur depuis le JWT
+        if (!$user) {
+            return $this->json(['error' => 'Utilisateur non authentifié'], 401);
         }
 
-        // Préparer le payload de réponse (simule l'enregistrement du paiement)
-        $paymentData = [
-            'name' => $data['name'] ?? 'Unknown',
-            'price' => $data['price'] ?? 0,
-            'qty' => $data['qty'] ?? 1,
-            'method' => $data['method'] ?? 'unknown',
-            'total' => $data['total'] ?? 0,
-            'userId' => $userId,
-        ];
+        $userIdentifier = method_exists($user, 'getUserIdentifier')
+            ? $user->getUserIdentifier()
+            : ($user['useremail'] ?? null); // selon la structure de ton JWT
 
-        // Ici tu pourrais faire appel à Stripe/PayPal si nécessaire
+        if (!$userIdentifier) {
+            return $this->json(['error' => 'Impossible de récupérer l\'identifiant utilisateur'], 400);
+        }
 
-        return new JsonResponse([
-            'success' => true,
-            'payment' => $paymentData,
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['items']) || !is_array($data['items'])) {
+            return $this->json(['error' => 'Payload invalide'], 400);
+        }
+
+        $items = $data['items'];
+
+        $total = array_reduce($items, fn($sum, $item) => $sum + ($item['total'] ?? 0), 0);
+
+        // Lien PayPal simulé pour test
+        $approvalUrl = "https://www.sandbox.paypal.com/checkoutnow?token=EXEMPLE";
+
+        return $this->json([
+            'userIdentifier' => $userIdentifier,
+            'items' => $items,
+            'total' => $total,
+            'approvalUrl' => $approvalUrl
         ]);
     }
 }
