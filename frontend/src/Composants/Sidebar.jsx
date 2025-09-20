@@ -50,7 +50,9 @@ const Sidebar = () => {
         )}
         {user?.roles.includes("ROLE_USER") && (
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
-          <ShoppingCart size={20} /> <span>Mes commandes</span>
+          <Link to="/orders" className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">
+            <ShoppingCart size={20} /> <span>Mes commandes</span>
+          </Link>
         </div>
         )}
         <div className="flex items-center space-x-2 hover:text-indigo-200 cursor-pointer">

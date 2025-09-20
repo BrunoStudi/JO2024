@@ -84,6 +84,7 @@ class PaymentController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
         $orderID = $data['orderID'] ?? null;
+        $items = $data['items'] ?? []; // récupérer les items envoyés depuis le frontend
 
         if (!$orderID) {
             return $this->json(['error' => 'orderID manquant'], 400);
@@ -117,6 +118,7 @@ class PaymentController extends AbstractController
         $order->setTotalAmount((float) $paypalResponse['purchase_units'][0]['payments']['captures'][0]['amount']['value']);
         $order->setOrderStatus($paypalResponse['status'] ?? 'COMPLETED');
         $order->setCreatedAt(new \DateTimeImmutable());
+        $order->setItems($items);
 
         $this->em->persist($order);
         $this->em->flush();
@@ -124,6 +126,7 @@ class PaymentController extends AbstractController
         return $this->json([
             'status' => 'success',
             'order_id' => $order->getId(),
+            'items' => $order->getItems(),
             'paypal_response' => $paypalResponse
         ]);
     }

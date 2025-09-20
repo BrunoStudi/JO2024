@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 import Sidebar from "../Composants/Sidebar";
 
 export default function OrderDetails() {
   const { orderId } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8002/api/orders/${orderId}`, {
+    fetch(`http://127.0.0.1:8003/api/orders/${orderId}`, {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -32,7 +34,17 @@ export default function OrderDetails() {
     <div className="flex min-h-screen bg-gray-100">
       <Sidebar />
       <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-6">Détails de la commande #{order.id}</h1>
+        {/* Titre avec bouton retour */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Détails de la commande #{order.id}</h1>
+          <button
+            onClick={() => navigate("/orders")}
+            className="flex items-center px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition duration-200 transform hover:-translate-x-1"
+          >
+            <ArrowLeft size={18} className="mr-2" /> Retour
+          </button>
+        </div>
+
         <p className="mb-2"><strong>Date :</strong> {new Date(order.createdAt).toLocaleDateString("fr-FR")}</p>
         <p className="mb-4"><strong>Statut :</strong> {order.status}</p>
 
@@ -41,9 +53,9 @@ export default function OrderDetails() {
           <ul className="space-y-2">
             {order.items.map((item, index) => (
               <li key={index} className="flex justify-between">
-                <span>{item.name} x {item.qty}</span>
-                <span>{item.price.toFixed(2)} €</span>
-                <span>Total: {(item.price * item.qty).toFixed(2)} €</span>
+                <span>
+                  {item.qty} billet{item.qty > 1 ? "s" : ""} {item.name}
+                </span>
               </li>
             ))}
           </ul>

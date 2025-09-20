@@ -96,7 +96,7 @@ export default function Checkout() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ orderID: idToCapture }),
+        body: JSON.stringify({ orderID: idToCapture, items: payload }),
       });
 
       const text = await res.text();
