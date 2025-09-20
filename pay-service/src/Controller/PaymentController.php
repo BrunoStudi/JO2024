@@ -2,22 +2,29 @@
 
 namespace App\Controller;
 
+use App\Entity\Order;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/pay', name: 'api_pay_')]
 class PaymentController extends AbstractController
 {
+    private EntityManagerInterface $em;
+
+    public function __construct(EntityManagerInterface $em)
+    {
+        $this->em = $em;
+    }
+
     // 🔹 Création d'une commande PayPal
     #[Route('/paypal', name: 'paypal', methods: ['POST'])]
-    #[IsGranted('IS_AUTHENTICATED_FULLY')]
     public function createPaypalOrder(Request $request): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user) {
+        $username = $this->extractUserFromJWT($request);
+        if (!$username) {
             return $this->json(['error' => 'Utilisateur non authentifié'], 401);
         }
 
@@ -66,12 +73,12 @@ class PaymentController extends AbstractController
         return $this->json(json_decode($response, true));
     }
 
-    // 🔹 Capture de la commande PayPal (orderID depuis le body)
+    // 🔹 Capture de la commande PayPal et enregistrement en BDD
     #[Route('/capture', name: 'capture', methods: ['POST'])]
     public function capturePaypalOrder(Request $request): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user) {
+        $username = $this->extractUserFromJWT($request);
+        if (!$username) {
             return $this->json(['error' => 'Utilisateur non authentifié'], 401);
         }
 
@@ -102,8 +109,41 @@ class PaymentController extends AbstractController
             return $this->json(['error' => 'Erreur capture PayPal', 'response' => $response], $httpCode);
         }
 
-        // 🔹 Ici tu peux enregistrer le paiement dans ta BDD
+        $paypalResponse = json_decode($response, true);
 
-        return $this->json(['status' => 'success', 'paypal_response' => json_decode($response, true)]);
+        // ✅ Enregistrer la commande en BDD
+        $order = new Order();
+        $order->setUserId($username); // <- utiliser le username comme identifiant
+        $order->setTotalAmount((float) $paypalResponse['purchase_units'][0]['payments']['captures'][0]['amount']['value']);
+        $order->setOrderStatus($paypalResponse['status'] ?? 'COMPLETED');
+        $order->setCreatedAt(new \DateTimeImmutable());
+
+        $this->em->persist($order);
+        $this->em->flush();
+
+        return $this->json([
+            'status' => 'success',
+            'order_id' => $order->getId(),
+            'paypal_response' => $paypalResponse
+        ]);
+    }
+
+    // 🔹 Fonction utilitaire : extraire le username depuis le JWT
+    private function extractUserFromJWT(Request $request): ?string
+    {
+        $token = $request->headers->get('Authorization');
+        if (!$token || !str_starts_with($token, 'Bearer ')) {
+            return null;
+        }
+
+        $jwt = substr($token, 7);
+        $parts = explode('.', $jwt);
+        if (count($parts) !== 3) {
+            return null;
+        }
+
+        $payload = json_decode(base64_decode($parts[1]), true);
+
+        return $payload['username'] ?? null; // <- ici on récupère username
     }
 }

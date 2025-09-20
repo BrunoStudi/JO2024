@@ -8,10 +8,11 @@ export default function Checkout() {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
-  const [orderID, setOrderID] = useState(null);
+  const [orderID, setOrderID] = useState(null); // stocke l'ID PayPal
   const navigate = useNavigate();
-  const token = localStorage.getItem("token"); // ton JWT
+  const token = localStorage.getItem("token");
 
+  // 🔹 Charger le panier et les offres
   useEffect(() => {
     const savedCart = JSON.parse(localStorage.getItem("cart")) || {};
     setCart(savedCart);
@@ -31,6 +32,7 @@ export default function Checkout() {
   if (loading) return <p className="p-6">Chargement du panier...</p>;
 
   const cartEntries = Object.entries(cart);
+
   const total = cartEntries.reduce((sum, [offerId, qty]) => {
     const offer = offers.find((o) => o.id === parseInt(offerId));
     return sum + (offer ? offer.price * qty : 0);
@@ -46,34 +48,69 @@ export default function Checkout() {
     };
   });
 
+  // 🔹 Créer une commande PayPal via backend
   const createOrder = async () => {
-    const res = await fetch("http://127.0.0.1:8003/api/pay/paypal", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ items: payload }),
-    });
-    const data = await res.json();
-    setOrderID(data.id); // récupérer l'orderID PayPal
-    return data.id;
+    try {
+      const res = await fetch("http://127.0.0.1:8003/api/pay/paypal", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ items: payload }),
+      });
+
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        console.error("Erreur parsing JSON createOrder:", text);
+        return;
+      }
+
+      if (!data.id) {
+        console.error("Aucun orderID retourné par le backend:", data);
+        return;
+      }
+
+      setOrderID(data.id);
+      return data.id;
+    } catch (err) {
+      console.error("Erreur réseau createOrder:", err);
+    }
   };
 
+  // 🔹 Capture de la commande et enregistrement BDD
   const onApprove = async (data, actions) => {
     try {
+      const idToCapture = data.orderID || orderID;
+      if (!idToCapture) {
+        console.error("Aucun orderID disponible pour capture !");
+        return;
+      }
+
       const res = await fetch("http://127.0.0.1:8003/api/pay/capture", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ orderID: data.orderID }),
+        body: JSON.stringify({ orderID: idToCapture }),
       });
-      const captureData = await res.json();
+
+      const text = await res.text();
+      let captureData;
+      try {
+        captureData = JSON.parse(text);
+      } catch (e) {
+        console.error("Erreur parsing JSON capture:", text);
+        return;
+      }
 
       if (captureData.status === "success") {
         setSuccess(true);
+        console.log("Commande enregistrée en BDD avec ID :", captureData.order_id);
         localStorage.removeItem("cart");
         setTimeout(() => navigate("/dashboard"), 3000);
       } else {
@@ -89,6 +126,7 @@ export default function Checkout() {
       <Sidebar />
       <div className="flex-1 p-6">
         <h1 className="text-2xl font-bold mb-6">Validation de votre réservation</h1>
+
         <div className="bg-white p-6 rounded-lg shadow mb-6">
           <h2 className="text-xl font-semibold mb-4">Votre panier</h2>
           <ul className="space-y-2">
@@ -107,7 +145,12 @@ export default function Checkout() {
         </div>
 
         {!success ? (
-          <PayPalScriptProvider options={{ "client-id": "AYBYWNdo8fpd7eHC9AFbvT28HPeEmXPhk8dQSc15i-ou9PLb--iZQRLcv5sgoGLuAfJ15YMpNzyFl6Ay", currency: "EUR" }}>
+          <PayPalScriptProvider
+            options={{
+              "client-id": "AYBYWNdo8fpd7eHC9AFbvT28HPeEmXPhk8dQSc15i-ou9PLb--iZQRLcv5sgoGLuAfJ15YMpNzyFl6Ay",
+              currency: "EUR",
+            }}
+          >
             <PayPalButtons
               style={{ layout: "vertical" }}
               createOrder={createOrder}

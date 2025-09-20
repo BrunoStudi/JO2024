@@ -8,7 +8,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
-#[ORM\Table(name: '`order`')]
+#[ORM\Table(name: 'orders')]
 class Order
 {
     #[ORM\Id]
@@ -16,14 +16,15 @@ class Order
     #[ORM\Column]
     private ?int $id = null;
 
+    // On garde juste l'id de l'utilisateur (pas d'entité User ici)
     #[ORM\Column]
-    private ?int $userId = null;
+    private ?string $userId = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'float')]
     private ?float $totalAmount = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $orderStatus = null;
+    private ?string $orderStatus = 'pending'; // Valeur par défaut
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -31,12 +32,13 @@ class Order
     /**
      * @var Collection<int, Payment>
      */
-    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'userOrder')]
+    #[ORM\OneToMany(targetEntity: Payment::class, mappedBy: 'userOrder', cascade: ['persist', 'remove'])]
     private Collection $payments;
 
     public function __construct()
     {
         $this->payments = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -44,15 +46,14 @@ class Order
         return $this->id;
     }
 
-    public function getUserId(): ?int
+    public function getUserId(): ?string
     {
         return $this->userId;
     }
 
-    public function setUserId(int $userId): static
+    public function setUserId(string $userId): static
     {
         $this->userId = $userId;
-
         return $this;
     }
 
@@ -61,10 +62,9 @@ class Order
         return $this->totalAmount;
     }
 
-    public function setTotalAmount(float $totalAmout): static
+    public function setTotalAmount(float $totalAmount): static
     {
-        $this->totalAmount = $totalAmout;
-
+        $this->totalAmount = $totalAmount;
         return $this;
     }
 
@@ -73,10 +73,9 @@ class Order
         return $this->orderStatus;
     }
 
-    public function setOrderStatus(string $payStatus): static
+    public function setOrderStatus(string $orderStatus): static
     {
-        $this->orderStatus = $payStatus;
-
+        $this->orderStatus = $orderStatus;
         return $this;
     }
 
@@ -88,7 +87,6 @@ class Order
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
@@ -113,7 +111,6 @@ class Order
     public function removePayment(Payment $payment): static
     {
         if ($this->payments->removeElement($payment)) {
-            // set the owning side to null (unless already changed)
             if ($payment->getUserOrder() === $this) {
                 $payment->setUserOrder(null);
             }
