@@ -80,7 +80,7 @@ export default function Reservation() {
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
 
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 p-6 pb-24 overflow-y-auto">
                 <h1 className="text-2xl font-bold mb-6">Réservation de billets</h1>
 
                 {/* Liste des offres */}

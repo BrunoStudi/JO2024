@@ -26,6 +26,9 @@ class Order
     #[ORM\Column(length: 255)]
     private ?string $orderStatus = 'pending'; // Valeur par défaut
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private array $items = []; // <-- Nouvelle colonne pour stocker la formule
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -39,6 +42,7 @@ class Order
     {
         $this->payments = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
+        $this->items = [];
     }
 
     public function getId(): ?int
@@ -76,6 +80,17 @@ class Order
     public function setOrderStatus(string $orderStatus): static
     {
         $this->orderStatus = $orderStatus;
+        return $this;
+    }
+
+    public function getItems(): array
+    {
+        return $this->items;
+    }
+
+    public function setItems(array $items): static
+    {
+        $this->items = $items;
         return $this;
     }
 

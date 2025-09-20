@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Order;
-use App\Entity\Payment;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -13,56 +12,39 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/api/orders')]
 class OrderController extends AbstractController
 {
-    #[Route('', name: 'create_order', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $em): JsonResponse
+    // 🔹 Endpoint pour récupérer les commandes de l’utilisateur connecté
+    #[Route('/my', name: 'get_my_orders', methods: ['GET'])]
+    public function getMyOrders(Request $request, EntityManagerInterface $em): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-
-        if (!$data || !isset($data['userId']) || !isset($data['items']) || !isset($data['total'])) {
-            return new JsonResponse(['error' => 'Invalid payload'], 400);
+        $token = $request->headers->get('Authorization');
+        if (!$token || !str_starts_with($token, 'Bearer ')) {
+            return $this->json(['error' => 'Utilisateur non authentifié'], 401);
         }
 
-        // Création de la commande
-        $order = new Order();
-        $order->setUserId($data['userId']);
-        $order->setTotalAmount($data['total']);
-        $order->setOrderStatus('pending');
-        $order->setCreatedAt(new \DateTimeImmutable());
+        $jwt = substr($token, 7);
+        $parts = explode('.', $jwt);
+        if (count($parts) !== 3) {
+            return $this->json(['error' => 'JWT invalide'], 400);
+        }
 
-        $em->persist($order);
+        $payload = json_decode(base64_decode($parts[1]), true);
+        $username = $payload['username'] ?? null;
 
-        // Ajout d’un paiement lié à la commande
-        $payment = new Payment();
-        $payment->setUserOrder($order);
-        $payment->setPayMethod($data['method'] ?? 'paypal');
-        $payment->setPayStatus('initiated');
-        $payment->setCreatedAt(new \DateTimeImmutable());
+        if (!$username) {
+            return $this->json(['error' => 'Utilisateur non authentifié'], 401);
+        }
 
-        $em->persist($payment);
-        $em->flush();
+        $orders = $em->getRepository(Order::class)->findBy(['userId' => $username], ['createdAt' => 'DESC']);
 
-        return new JsonResponse([
-            'message' => 'Order created successfully',
-            'orderId' => $order->getId(),
-            'paymentId' => $payment->getId(),
-        ], 201);
-    }
-
-    #[Route('/user/{userId}', name: 'get_orders_by_user', methods: ['GET'])]
-    public function getOrdersByUser(int $userId, EntityManagerInterface $em): JsonResponse
-    {
-        $orders = $em->getRepository(Order::class)->findBy(['userId' => $userId]);
-
-        $data = [];
-        foreach ($orders as $order) {
-            $data[] = [
+        $data = array_map(function($order) {
+            return [
                 'id' => $order->getId(),
-                'total' => $order->getTotalAmount(),
-                'status' => $order->getStatus(),
+                'totalAmount' => $order->getTotalAmount(),
+                'status' => $order->getOrderStatus(),
                 'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
             ];
-        }
+        }, $orders);
 
-        return new JsonResponse($data);
+        return $this->json($data);
     }
 }

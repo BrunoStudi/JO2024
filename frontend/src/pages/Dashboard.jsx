@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "../services/AuthContext";
 import { useUser } from "../services/UserContext";
 import Sidebar from "../Composants/Sidebar";
@@ -6,15 +7,36 @@ import { User, ShoppingCart, Bell } from "lucide-react";
 const Dashboard = () => {
   const { user: authUser } = useAuth();
   const { userProfile } = useUser();
+  const [orders, setOrders] = useState([]);
 
-  const roles = (userProfile?.roles && userProfile.roles.length > 0) ? userProfile.roles : (authUser?.roles || []);
+  const roles = (userProfile?.roles && userProfile.roles.length > 0)
+    ? userProfile.roles
+    : (authUser?.roles || []);
+
+  // 🔹 Fetch des commandes de l'utilisateur connecté
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    fetch("http://127.0.0.1:8003/api/orders/my", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then(res => res.json())
+      .then(data => setOrders(data))
+      .catch(err => console.error("Erreur récupération commandes :", err));
+  }, []);
+
+  const formatDate = (datetime) => {
+    const d = new Date(datetime);
+    return d.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
       <Sidebar />
 
-      {/* Main content */}
       <div className="flex-1 ml-0 md:ml-8 p-6 transition-all duration-300">
         <h1 className="text-3xl font-bold mb-6 text-gray-800">Mon tableau de bord</h1>
 
@@ -25,13 +47,12 @@ const Dashboard = () => {
               <User size={24} className="text-indigo-600 mr-2" />
               <h2 className="text-xl font-semibold">Mes informations</h2>
             </div>
-            <p><strong><span className="font-medium">Email :</span></strong> {authUser?.username}</p>
-            {/*<p><strong><span className="font-medium">Fraude:</span></strong> {userProfile?.isKeyActive === false ? "Oui" : "Non"}</p>*/}
-            <p><strong><span className="font-medium">Prénom :</span></strong> {userProfile?.firstName || "Non renseigné"}</p>
-            <p><strong><span className="font-medium">Nom :</span></strong> {userProfile?.lastName || "Non renseigné"}</p>
-            <p><strong><span className="font-medium">Adresse :</span></strong> {userProfile?.address || "Non renseignée"}</p>
-            <p><strong><span className="font-medium">Téléphone :</span></strong> {userProfile?.phone || "Non renseigné"}</p>
-            <p><strong><span className="font-medium">Rôles :</span></strong> {roles.length ? roles?.join(', ') : "Aucun rôle"}</p>
+            <p><strong>Email :</strong> {authUser?.username}</p>
+            <p><strong>Prénom :</strong> {userProfile?.firstName || "Non renseigné"}</p>
+            <p><strong>Nom :</strong> {userProfile?.lastName || "Non renseigné"}</p>
+            <p><strong>Adresse :</strong> {userProfile?.address || "Non renseignée"}</p>
+            <p><strong>Téléphone :</strong> {userProfile?.phone || "Non renseigné"}</p>
+            <p><strong>Rôles :</strong> {roles.length ? roles.join(', ') : "Aucun rôle"}</p>
           </div>
 
           {/* Commandes */}
@@ -40,7 +61,20 @@ const Dashboard = () => {
               <ShoppingCart size={24} className="text-indigo-600 mr-2" />
               <h2 className="text-xl font-semibold">Mes commandes</h2>
             </div>
-            <p>Contenu à venir...</p>
+
+            {orders.length === 0 ? (
+              <p>Aucune commande pour le moment.</p>
+            ) : (
+              <ul className="space-y-3">
+                {orders.map(order => (
+                  <li key={order.id} className="flex justify-between items-center border-b pb-2">
+                    <span className="font-medium">Commande du:</span>
+                    <span className="text-md text-gray-500">{formatDate(order.createdAt)}</span>
+                    <span className="font-semibold">{order.totalAmount.toFixed(2)} €</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
           {/* Notifications */}
