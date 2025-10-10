@@ -1,18 +1,21 @@
 import smtplib
 from email.message import EmailMessage
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def send_ticket_email(to_email: str, order_id: int, qr_path: str, security_key: str):
     """
     Envoie un e-mail contenant le billet (QR code) au client.
     """
     # ---- Configuration SMTP ----
-    SMTP_SERVER = "smtp.gmail.com"
-    SMTP_PORT = 587
-    SMTP_USER = os.getenv("SMTP_USER")  # Ton adresse e-mail
-    SMTP_PASS = os.getenv("SMTP_PASS")  # Ton mot de passe d’application (pas ton vrai mot de passe)
+    SMTP_USER = os.getenv("SMTP_USER")
+    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+    SMTP_SERVER = os.getenv("SMTP_SERVER")
+    SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 
-    if not SMTP_USER or not SMTP_PASS:
+    if not SMTP_USER or not SMTP_PASSWORD:
         raise ValueError("Les identifiants SMTP ne sont pas définis dans les variables d'environnement")
 
     # ---- Création du message ----
@@ -25,7 +28,7 @@ def send_ticket_email(to_email: str, order_id: int, qr_path: str, security_key: 
 Bonjour,
 
 Merci pour votre achat ! 🎉
-Vous trouverez en pièce jointe votre billet pour la commande #{order_id}.
+Vous trouverez en pièce jointe votre billet pour la commande référence: {order_id}.
 
 Clé de sécurité : {security_key}
 
@@ -47,7 +50,7 @@ L’équipe des Jeux Olympiques 2024
     # ---- Envoi du mail ----
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp:
         smtp.starttls()
-        smtp.login(SMTP_USER, SMTP_PASS)
+        smtp.login(SMTP_USER, SMTP_PASSWORD)
         smtp.send_message(msg)
 
     print(f"✅ E-mail envoyé à {to_email}")
