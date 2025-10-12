@@ -65,15 +65,22 @@ const Dashboard = () => {
             {orders.length === 0 ? (
               <p>Aucune commande pour le moment.</p>
             ) : (
-              <ul className="space-y-3">
-                {orders.map(order => (
-                  <li key={order.id} className="flex justify-between items-center border-b pb-2">
-                    <span className="font-medium">Commande du:</span>
-                    <span className="text-md text-gray-500">{formatDate(order.createdAt)}</span>
-                    <span className="font-semibold">{order.totalAmount.toFixed(2)} €</span>
-                  </li>
-                ))}
-              </ul>
+              <>
+                <ul className="space-y-3">
+                  {orders.slice(0, 4).map(order => (
+                    <li key={order.id} className="flex justify-between items-center border-b pb-2">
+                      <span className="font-medium">Commande du:</span>
+                      <span className="text-md text-gray-500">{formatDate(order.createdAt)}</span>
+                      <span className="font-semibold">{order.totalAmount.toFixed(2)} €</span>
+                    </li>
+                  ))}
+                </ul>
+                {orders.length > 4 && (
+                  <p className="mt-2 text-gray-500 text-sm">
+                    +{orders.length - 4} commande{orders.length - 4 > 1 ? "s" : ""} supplémentaire{orders.length - 4 > 1 ? "s" : ""}
+                  </p>
+                )}
+              </>
             )}
           </div>
 
