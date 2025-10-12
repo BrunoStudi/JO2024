@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Services\TicketDeliveryService;
 use App\Entity\Order;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -75,7 +76,7 @@ class PaymentController extends AbstractController
 
     // 🔹 Capture de la commande PayPal et enregistrement en BDD
     #[Route('/capture', name: 'capture', methods: ['POST'])]
-    public function capturePaypalOrder(Request $request): JsonResponse
+    public function capturePaypalOrder(Request $request, TicketDeliveryService $ticketDeliveryService): JsonResponse
     {
         $username = $this->extractUserFromJWT($request);
         if (!$username) {
@@ -123,11 +124,31 @@ class PaymentController extends AbstractController
         $this->em->persist($order);
         $this->em->flush();
 
+        // ✅ Si paiement réussi, on appelle le microservice python delivery
+        if (($paypalResponse['status'] ?? '') === 'COMPLETED') {
+            try {
+                $ticketData = [
+                    /* retirer les /* pour utiliser l'adresse paypal 'email_address' et apres les ?? mettre l'adresse de test voulue */
+                    'email' => $paypalResponse['payer']['email/*_address*/'] ?? 'r.brunocarriere@protonmail.com',
+                    'name' => $paypalResponse['payer']['name']['given_name'] ?? $username,
+                    'offer_name' => $items[0]['name'] ?? 'Billet JO 2024',
+                    'order_id' => $order->getId(),
+                ];
+
+                $deliveryResponse = $ticketDeliveryService->sendTicket($ticketData);
+            } catch (\Throwable $e) {
+                $deliveryResponse = ['error' => 'Erreur lors de la livraison : ' . $e->getMessage()];
+            }
+        } else {
+            $deliveryResponse = ['info' => 'Paiement non complété, ticket non envoyé'];
+        }
+
         return $this->json([
             'status' => 'success',
             'order_id' => $order->getId(),
             'items' => $order->getItems(),
-            'paypal_response' => $paypalResponse
+            'paypal_response' => $paypalResponse,
+            'delivery_response' => $deliveryResponse
         ]);
     }
 
