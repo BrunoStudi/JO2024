@@ -20,7 +20,7 @@ class PaymentController extends AbstractController
         $this->em = $em;
     }
 
-    // 🔹 Création d'une commande PayPal
+    // Création d'une commande PayPal
     #[Route('/paypal', name: 'paypal', methods: ['POST'])]
     public function createPaypalOrder(Request $request): JsonResponse
     {
@@ -74,7 +74,7 @@ class PaymentController extends AbstractController
         return $this->json(json_decode($response, true));
     }
 
-    // 🔹 Capture de la commande PayPal et enregistrement en BDD
+    // Capture de la commande PayPal et enregistrement en BDD
     #[Route('/capture', name: 'capture', methods: ['POST'])]
     public function capturePaypalOrder(Request $request, TicketDeliveryService $ticketDeliveryService): JsonResponse
     {
@@ -113,7 +113,7 @@ class PaymentController extends AbstractController
 
         $paypalResponse = json_decode($response, true);
 
-        // ✅ Enregistrer la commande en BDD
+        // Enregistrer la commande en BDD
         $order = new Order();
         $order->setUserId($username); // <- utiliser le username comme identifiant
         $order->setTotalAmount((float) $paypalResponse['purchase_units'][0]['payments']['captures'][0]['amount']['value']);
@@ -124,7 +124,7 @@ class PaymentController extends AbstractController
         $this->em->persist($order);
         $this->em->flush();
 
-        // ✅ Si paiement réussi, on appelle le microservice python delivery
+        // Si paiement réussi, on appelle le microservice python delivery
         if (($paypalResponse['status'] ?? '') === 'COMPLETED') {
             try {
                 $ticketData = [
@@ -135,7 +135,9 @@ class PaymentController extends AbstractController
                     'order_id' => $order->getId(),
                 ];
 
-                $deliveryResponse = $ticketDeliveryService->sendTicket($ticketData);
+                $jwtToken = $request->headers->get('Authorization');
+                $deliveryResponse = $ticketDeliveryService->sendTicket($ticketData, $jwtToken);
+
             } catch (\Throwable $e) {
                 $deliveryResponse = ['error' => 'Erreur lors de la livraison : ' . $e->getMessage()];
             }
@@ -152,7 +154,28 @@ class PaymentController extends AbstractController
         ]);
     }
 
-    // 🔹 Fonction utilitaire : extraire le username depuis le JWT
+    // Enregistrer la clé ticket en BDD
+    #[Route('/orders/{id}/ticket-key', name: 'order_ticket_key', methods: ['POST'])]
+    public function saveTicketKey(Order $order, Request $request): JsonResponse
+    {
+        if (!$order) {
+            return $this->json(['error' => 'Commande introuvable'], 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $ticketKey = $data['ticketKey'] ?? null;
+
+        if (!$ticketKey) {
+            return $this->json(['error' => 'ticketKey manquant'], 400);
+        }
+
+        $order->setTicketKey($ticketKey);
+        $this->em->flush();
+
+        return $this->json(['success' => true]);
+    }
+
+    // Fonction utilitaire : extraire le username depuis le JWT
     private function extractUserFromJWT(Request $request): ?string
     {
         $token = $request->headers->get('Authorization');

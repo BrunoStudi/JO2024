@@ -15,9 +15,30 @@ class TicketDeliveryService
         $this->deliveryServiceUrl = rtrim($deliveryServiceUrl, '/');
     }
 
-    public function sendTicket(array $ticketData): array
+    /**
+     * Envoie les données du ticket au microservice Python.
+     *
+     * @param array $ticketData Données du ticket à envoyer
+     * @param string|null $jwtToken JWT pour authentifier la requête
+     * @return array Réponse du service de livraison
+     */
+    public function sendTicket(array $ticketData, ?string $jwtToken = null): array
     {
+        $headers = [
+            'Content-Type' => 'application/json',
+            'X-Service-Key' => '5hT9vQ2#xP8rZ1!dLw6YbNc7JkR0fGhM',
+        ];
+
+        // Si un token est fourni, on l'ajoute correctement
+        if ($jwtToken) {
+            if (!str_starts_with($jwtToken, 'Bearer ')) {
+                $jwtToken = 'Bearer ' . trim($jwtToken);
+            }
+            $headers['Authorization'] = $jwtToken;
+        }
+
         $response = $this->client->request('POST', $this->deliveryServiceUrl . '/api/deliver', [
+            'headers' => $headers,
             'json' => $ticketData,
         ]);
 

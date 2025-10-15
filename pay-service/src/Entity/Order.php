@@ -32,6 +32,9 @@ class Order
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $ticketKey = null;
+
     /**
      * @var Collection<int, Payment>
      */
@@ -102,6 +105,23 @@ class Order
     public function setCreatedAt(\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    /**
+     * Get the ticket key associated with the order.
+     */
+    public function getTicketKey(): ?string
+    {
+        return $this->ticketKey;
+    }
+
+    /**
+     * Set the ticket key (used to validate or identify a ticket).
+     */
+    public function setTicketKey(?string $ticketKey): self
+    {
+        $this->ticketKey = $ticketKey;
         return $this;
     }
 

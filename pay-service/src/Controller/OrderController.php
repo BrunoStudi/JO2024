@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/api/orders')]
 class OrderController extends AbstractController
 {
-    // 🔹 Endpoint pour récupérer les commandes de l’utilisateur connecté
+    // Endpoint pour récupérer les commandes de l’utilisateur connecté
     #[Route('/my', name: 'get_my_orders', methods: ['GET'])]
     public function getMyOrders(Request $request, EntityManagerInterface $em): JsonResponse
     {
@@ -53,7 +53,7 @@ class OrderController extends AbstractController
         return $this->json($data);
     }
 
-    // 🔹 Endpoint pour récupérer une commande par son ID
+    // Endpoint pour récupérer une commande par son ID
     #[Route('/{id}', name: 'get_order_by_id', methods: ['GET'])]
     public function getOrderById(int $id, Request $request, EntityManagerInterface $em): JsonResponse
     {
