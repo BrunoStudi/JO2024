@@ -3,3 +3,4 @@ uvicorn
 qrcode
 pillow
 python-dotenv
+reportlab

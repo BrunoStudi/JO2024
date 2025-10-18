@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import Sidebar from "../Composants/Sidebar";
 
 export default function OrderDetails() {
@@ -27,6 +27,32 @@ export default function OrderDetails() {
       });
   }, [orderId]);
 
+  const handleDownloadTicket = async () => {
+    try {
+      const res = await fetch(`http://127.0.0.1:8004/api/tickets/${order.id}/download`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Erreur téléchargement billet");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `billet_${order.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Impossible de télécharger le billet");
+    }
+  };
+
   if (loading) return <p className="p-6">Chargement des détails...</p>;
   if (!order) return <p className="p-6 text-red-600">Commande introuvable</p>;
 
@@ -52,14 +78,20 @@ export default function OrderDetails() {
           <h2 className="text-xl font-semibold mb-4">Billets achetés</h2>
           <ul className="space-y-2">
             {order.items.map((item, index) => (
-              <li key={index} className="flex justify-between">
-                <span>
-                  {item.qty} billet{item.qty > 1 ? "s" : ""} {item.name}
-                </span>
+              <li key={index}>
+                {item.qty} billet{item.qty > 1 ? "s" : ""} {item.name}
               </li>
             ))}
           </ul>
+
           <p className="mt-4 font-bold text-lg">Total commande: {order.totalAmount.toFixed(2)} €</p>
+
+          <button
+            onClick={handleDownloadTicket}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
+          >
+            <Download size={18} className="mr-2" /> Télécharger le billet
+          </button>
         </div>
       </div>
     </div>

@@ -93,6 +93,7 @@ class OrderController extends AbstractController
             'status' => $order->getOrderStatus(),
             'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
             'items' => $itemNames,
+            'ticketPdfPath' => $order->getTicketPdfPath(),
         ]);
     }
 }

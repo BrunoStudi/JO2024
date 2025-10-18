@@ -131,13 +131,12 @@ class PaymentController extends AbstractController
                     /* retirer les /* pour utiliser l'adresse paypal 'email_address' et apres les ?? mettre l'adresse de test voulue */
                     'email' => $paypalResponse['payer']['email/*_address*/'] ?? 'r.brunocarriere@protonmail.com',
                     'name' => $paypalResponse['payer']['name']['given_name'] ?? $username,
-                    'offer_name' => $items[0]['name'] ?? 'Billet JO 2024',
+                    'items' => $items,   // liste complète des items envoyée au PDF
                     'order_id' => $order->getId(),
                 ];
 
                 $jwtToken = $request->headers->get('Authorization');
                 $deliveryResponse = $ticketDeliveryService->sendTicket($ticketData, $jwtToken);
-
             } catch (\Throwable $e) {
                 $deliveryResponse = ['error' => 'Erreur lors de la livraison : ' . $e->getMessage()];
             }
@@ -154,25 +153,53 @@ class PaymentController extends AbstractController
         ]);
     }
 
-    // Enregistrer la clé ticket en BDD
-    #[Route('/orders/{id}/ticket-key', name: 'order_ticket_key', methods: ['POST'])]
-    public function saveTicketKey(Order $order, Request $request): JsonResponse
+    // Enregistrer la clé ticket et chemin ticket pdf en BDD
+    #[Route('/orders/{id}/ticket', name: 'order_ticket_upload', methods: ['POST'])]
+    public function uploadTicket(Order $order, Request $request): JsonResponse
     {
         if (!$order) {
             return $this->json(['error' => 'Commande introuvable'], 404);
         }
 
-        $data = json_decode($request->getContent(), true);
-        $ticketKey = $data['ticketKey'] ?? null;
+        $ticketKey = $request->request->get('ticketKey');
+        $ticketFile = $request->files->get('ticket_pdf');
 
-        if (!$ticketKey) {
-            return $this->json(['error' => 'ticketKey manquant'], 400);
+        if (!$ticketKey || !$ticketFile) {
+            return $this->json(['error' => 'ticketKey ou ticket_pdf manquant'], 400);
         }
 
+        // Dossier de stockage local (ex: public/uploads/tickets)
+        $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/tickets';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
+        $filename = 'ticket_' . $order->getId() . '.pdf';
+        $ticketFile->move($uploadDir, $filename);
+
+        // Mise à jour de la clé et du chemin du fichier
         $order->setTicketKey($ticketKey);
+        $order->setTicketPdfPath('/uploads/tickets/' . $filename);
         $this->em->flush();
 
-        return $this->json(['success' => true]);
+        return $this->json([
+            'success' => true,
+            'file' => '/uploads/tickets/' . $filename,
+            'message' => 'Ticket PDF enregistré avec succès'
+        ]);
+    }
+
+    // Endpoint pour le telechargement du billet
+    #[Route('/orders/{id}/ticket/download', name: 'download_ticket', methods: ['GET'])]
+    public function downloadTicket(Order $order)
+    {
+        $pdfPath = $order->getTicketPdfPath();
+
+        if (!$pdfPath || !file_exists($this->getParameter('kernel.project_dir') . '/public' . $pdfPath)) {
+            return $this->json(['error' => 'Billet introuvable'], 404);
+        }
+
+        return $this->file($this->getParameter('kernel.project_dir') . '/public' . $pdfPath, 'billet_' . $order->getId() . '.pdf');
     }
 
     // Fonction utilitaire : extraire le username depuis le JWT

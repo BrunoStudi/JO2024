@@ -35,6 +35,9 @@ class Order
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $ticketKey = null;
 
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $ticketPdfPath = null;
+
     /**
      * @var Collection<int, Payment>
      */
@@ -122,6 +125,19 @@ class Order
     public function setTicketKey(?string $ticketKey): self
     {
         $this->ticketKey = $ticketKey;
+        return $this;
+    }
+
+    // Getter
+    public function getTicketPdfPath(): ?string
+    {
+        return $this->ticketPdfPath;
+    }
+
+    // Setter
+    public function setTicketPdfPath(?string $ticketPdfPath): self
+    {
+        $this->ticketPdfPath = $ticketPdfPath;
         return $this;
     }
 

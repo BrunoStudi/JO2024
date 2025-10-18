@@ -67,7 +67,7 @@ const Dashboard = () => {
             ) : (
               <>
                 <ul className="space-y-3">
-                  {orders.slice(0, 4).map(order => (
+                  {orders.slice(0, 3).map(order => (
                     <li key={order.id} className="flex justify-between items-center border-b pb-2">
                       <span className="font-medium">Commande du:</span>
                       <span className="text-md text-gray-500">{formatDate(order.createdAt)}</span>
@@ -75,9 +75,9 @@ const Dashboard = () => {
                     </li>
                   ))}
                 </ul>
-                {orders.length > 4 && (
+                {orders.length > 3 && (
                   <p className="mt-2 text-gray-500 text-sm">
-                    +{orders.length - 4} commande{orders.length - 4 > 1 ? "s" : ""} supplémentaire{orders.length - 4 > 1 ? "s" : ""}
+                    +{orders.length - 3} commande{orders.length - 3 > 1 ? "s" : ""} supplémentaire{orders.length - 3 > 1 ? "s" : ""}
                   </p>
                 )}
               </>
