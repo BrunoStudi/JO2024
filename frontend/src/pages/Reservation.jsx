@@ -23,7 +23,7 @@ export default function Reservation() {
                 setLoading(false);
             });
 
-        // 🔹 Récupérer panier sauvegardé si existe
+        // Récupérer panier sauvegardé si existe
         const savedCart = localStorage.getItem("cart");
         if (savedCart) {
             setSelected(JSON.parse(savedCart));
@@ -36,7 +36,7 @@ export default function Reservation() {
                 ...prev,
                 [offerId]: prev[offerId] ? prev[offerId] + 1 : 1,
             };
-            localStorage.setItem("cart", JSON.stringify(updated)); // 🔹 Sauvegarde auto
+            localStorage.setItem("cart", JSON.stringify(updated)); // Sauvegarde auto
             return updated;
         });
     };
@@ -49,29 +49,50 @@ export default function Reservation() {
             } else {
                 delete updated[offerId];
             }
-            localStorage.setItem("cart", JSON.stringify(updated)); // 🔹 Sauvegarde auto
+            localStorage.setItem("cart", JSON.stringify(updated)); // Sauvegarde auto
             return updated;
         });
     };
 
-    const handleReservation = () => {
+    // On vérifie que l'utilisateur a bien renseigné nom + prénom avant réservation
+    const handleReservation = async () => {
         const token = localStorage.getItem("token");
 
         if (!token) {
-            // 🔹 Sauvegarde du panier avant redirection
+            // Sauvegarde du panier avant redirection
             localStorage.setItem("cart", JSON.stringify(selected));
             localStorage.setItem("redirectAfterLogin", "/reservation");
             navigate("/login");
             return;
         }
 
-        // 🔹 Sauvegarde du panier avant checkout (sécurité)
-        localStorage.setItem("cart", JSON.stringify(selected));
+        try {
+            // On vérifie les infos utilisateur
+            const res = await axios.get("http://127.0.0.1:8001/api/user/profile", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
 
-        // 🔹 Redirection vers checkout
-        navigate("/checkout");
+            const user = res.data.profile;
+            
+
+
+            if (!user.firstName || !user.lastName) {
+                alert("❌ Vous devez renseigner votre nom et prénom dans votre profil avant de continuer.");
+                navigate("/profil"); // Redirige vers la page de profil
+                return;
+            }
+
+            // Sauvegarde du panier avant checkout
+            localStorage.setItem("cart", JSON.stringify(selected));
+
+            // Redirection vers checkout
+            navigate("/checkout");
+
+        } catch (err) {
+            console.error("Erreur vérification profil:", err);
+            alert("Une erreur est survenue lors de la vérification de votre profil.");
+        }
     };
-
 
     if (loading) return <p className="p-6">Chargement des offres...</p>;
     if (error) return <p className="p-6 text-red-500">{error}</p>;
