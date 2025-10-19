@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def send_ticket_email(to_email: str, order_id: int, qr_path: str, security_key: str):
+def send_ticket_email(to_email: str, order_id: int, pdf_path: str):
     """
     Envoie un e-mail contenant le billet (QR code) au client.
     """
@@ -30,8 +30,6 @@ Bonjour,
 Merci pour votre achat ! 🎉
 Vous trouverez en pièce jointe votre billet pour la commande référence: {order_id}.
 
-Clé de sécurité : {security_key}
-
 Conservez ce mail, il vous permettra d'accéder à votre événement.
 
 Cordialement,
@@ -39,13 +37,13 @@ L’équipe des Jeux Olympiques 2024
     """)
 
     # ---- Ajout du QR code en pièce jointe ----
-    with open(qr_path, "rb") as f:
+    with open(pdf_path, "rb") as f:
         msg.add_attachment(
             f.read(),
-            maintype="image",
-            subtype="png",
-            filename=os.path.basename(qr_path)
-        )
+            maintype="application",
+            subtype="pdf",
+            filename=f"ticket_{order_id}.pdf"
+    )
 
     # ---- Envoi du mail ----
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp:

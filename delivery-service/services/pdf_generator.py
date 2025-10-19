@@ -4,7 +4,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.lib import colors
 
-def generate_ticket_pdf(order_id: str, user_email: str, qr_path: str, logo_path: str = None,
+def generate_ticket_pdf(order_id: str, user_email: str, firstname: str, lastname: str, qr_path: str, logo_path: str = None,
                         items: list[dict] = None) -> str:
     
     # Liste des offres
@@ -60,6 +60,8 @@ def generate_ticket_pdf(order_id: str, user_email: str, qr_path: str, logo_path:
     c.drawString(margin + 20, info_y, f"Commande : {order_id}")
     info_y -= 20
     c.drawString(margin + 20, info_y, f"Email : {user_email}")
+    info_y -= 20
+    c.drawString(margin + 20, info_y, f"prénom, nom : {firstname}, {lastname}")
     info_y -= 20
     c.drawString(margin + 20, info_y, f"Prix total : {total_price} €")
 

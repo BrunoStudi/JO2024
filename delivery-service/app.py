@@ -35,8 +35,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# URL du microservice Symfony
+# URL du microservice commandes
 SYMFONY_API_URL = "http://127.0.0.1:8003/api/pay/orders"
+# URL du microservice profile user
+PROFILE_API_URL = "http://127.0.0.1:8001/api/user/profile"
 
 # Clé publique JWT
 JWT_PUBLIC_KEY = """-----BEGIN PUBLIC KEY-----
@@ -101,6 +103,23 @@ async def deliver_ticket(
 
     logger.info(f"📦 Livraison du ticket pour la commande {order_id} | {len(items)} offre(s)")
 
+    # Récupération du profile
+    try:
+        response = requests.get(PROFILE_API_URL, headers={"Authorization": f"Bearer {jwt_token}"})
+        if response.status_code == 200:
+            profile_data = response.json().get("profile", {})
+            firstname = profile_data.get("firstName", "")
+            lastname = profile_data.get("lastName", "")
+            logger.info(f"Nom récupéré : {firstname} {lastname}")
+        else:
+            firstname = ""
+            lastname = ""
+            logger.warning(f"Impossible de récupérer le profil, status: {response.status_code}")
+    except Exception as e:
+        firstname = ""
+        lastname = ""
+        logger.error(f"Erreur lors de la récupération du profil: {e}")
+
     # Génération de la clé et QR code
     security_key = generate_security_key()
     qr_content = f"order:{order_id}|key:{security_key}"
@@ -114,6 +133,8 @@ async def deliver_ticket(
     pdf_path = generate_ticket_pdf(
         order_id=order_id,
         user_email=user_email,
+        firstname=firstname,
+        lastname=lastname,
         qr_path=qr_path,
         items=items,
         logo_path=logo_path
@@ -140,7 +161,7 @@ async def deliver_ticket(
 
     # Envoi du mail avec le PDF unique
     try:
-        send_ticket_email(user_email, order_id, pdf_path, security_key)
+        send_ticket_email(user_email, order_id, pdf_path)
         logger.info(f"✉️ Email envoyé à {user_email}")
     except Exception as e:
         logger.error(f"Erreur email: {e}")
