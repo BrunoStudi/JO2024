@@ -86,6 +86,26 @@ class PaymentController extends AbstractController
             return $this->json(['error' => 'Utilisateur non authentifié'], 401);
         }
 
+        // Vérification du statut de la clé utilisateur dans auth-service
+        $jwtToken = $request->headers->get('Authorization');
+        try {
+            $authResponse = $this->client->request('GET', "http://127.0.0.1:8000/api/user/by-email/$username", [
+                'headers' => [
+                    'Authorization' => $jwtToken,
+                    'Accept' => 'application/json',
+                ],
+            ]);
+
+            $userData = json_decode($authResponse->getContent(), true);
+
+            if (isset($userData['isKeyActive']) && $userData['isKeyActive'] == 0) {
+                return $this->json(['error' => 'Clé utilisateur révoquée. Paiement refusé.'], 403);
+            }
+        } catch (\Throwable $e) {
+            return $this->json(['error' => 'Impossible de vérifier la clé utilisateur', 'details' => $e->getMessage()], 500);
+        }
+
+        // Si clé valide, on continue
         $data = json_decode($request->getContent(), true);
         $orderID = $data['orderID'] ?? null;
         $items = $data['items'] ?? []; // récupérer les items envoyés depuis le frontend
@@ -189,8 +209,6 @@ class PaymentController extends AbstractController
             return $this->json(['error' => 'Clé utilisateur introuvable'], 500);
         }
 
-        error_log("Clé utilisateur : " . $userKey);
-        
         // Dossier de stockage local (ex: public/uploads/tickets)
         $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/tickets';
         if (!is_dir($uploadDir)) {

@@ -73,8 +73,6 @@ export default function Reservation() {
             });
 
             const user = res.data.profile;
-            
-
 
             if (!user.firstName || !user.lastName) {
                 alert("❌ Vous devez renseigner votre nom et prénom dans votre profil avant de continuer.");
@@ -82,15 +80,35 @@ export default function Reservation() {
                 return;
             }
 
-            // Sauvegarde du panier avant checkout
-            localStorage.setItem("cart", JSON.stringify(selected));
+            const res2 = await axios.get("http://127.0.0.1:8000/api/user/by-email/" + user.email, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
 
-            // Redirection vers checkout
-            navigate("/checkout");
+            const userKey = res2.data.isKeyActive;
+
+            if (!userKey) {
+                alert("❌ Votre comte est banni ou fraude détectée, paiement impossible.");
+                navigate("/dashboard"); // Redirige vers la page du tableau de bord
+                return;
+            }
+            else {
+                // Sauvegarde du panier avant checkout
+                localStorage.setItem("cart", JSON.stringify(selected));
+
+                // Redirection vers checkout
+                navigate("/checkout");
+            }
 
         } catch (err) {
-            console.error("Erreur vérification profil:", err);
-            alert("Une erreur est survenue lors de la vérification de votre profil.");
+            console.error("Erreur vérification utilisateur:", err);
+
+            if (err.response?.status === 401 || err.message.includes("révoquée")) {
+                alert("⚠️ Votre session a expiré ou fraude detecté. Veuillez vous reconnecter.");
+                localStorage.removeItem("token");
+                navigate("/login");
+            } else {
+                alert("❌ Une erreur est survenue lors de la vérification de votre profil.");
+            }
         }
     };
 

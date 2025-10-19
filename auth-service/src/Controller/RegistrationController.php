@@ -182,6 +182,7 @@ class RegistrationController extends AbstractController
         return $this->json([
             'email' => $user->getEmail(),
             'securityKey' => $user->getSecurityKey(),
+            'isKeyActive' => $user->getIsKeyActive()
         ]);
     }
 }
