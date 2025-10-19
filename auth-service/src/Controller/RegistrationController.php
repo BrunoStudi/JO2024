@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
@@ -167,5 +168,20 @@ class RegistrationController extends AbstractController
                 'email' => $user->getEmail(),
             ],
         ], 201);
+    }
+
+    // Endpoint pour récupérer la clé user pour pay-service
+    #[Route('/user/by-email/{email}', name: 'user_by_email', methods: ['GET'])]
+    public function getUserKeyByEmail(string $email, UserRepository $userRepo): JsonResponse
+    {
+        $user = $userRepo->findOneBy(['email' => $email]);
+        if (!$user) {
+            return $this->json(['error' => 'Utilisateur introuvable'], 404);
+        }
+
+        return $this->json([
+            'email' => $user->getEmail(),
+            'securityKey' => $user->getSecurityKey(),
+        ]);
     }
 }

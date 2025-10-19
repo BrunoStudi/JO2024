@@ -9,15 +9,18 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[Route('/api/pay', name: 'api_pay_')]
 class PaymentController extends AbstractController
 {
     private EntityManagerInterface $em;
+    private HttpClientInterface $client;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, HttpClientInterface $client)
     {
         $this->em = $em;
+        $this->client = $client;
     }
 
     // Création d'une commande PayPal
@@ -168,6 +171,26 @@ class PaymentController extends AbstractController
             return $this->json(['error' => 'ticketKey ou ticket_pdf manquant'], 400);
         }
 
+        $email = $this->extractUserFromJWT($request);
+
+        // Appel au auth-service pour récupérer la security_key
+        $jwtToken = $request->headers->get('Authorization');
+        $response = $this->client->request('GET', "http://127.0.0.1:8000/api/user/by-email/$email", [
+            'headers' => [
+                'Authorization' => $jwtToken,
+                'Accept' => 'application/json',
+            ]
+        ]);
+
+        $userData = json_decode($response->getContent(), true);
+        $userKey = $userData['securityKey'] ?? null;
+
+        if (!$userKey) {
+            return $this->json(['error' => 'Clé utilisateur introuvable'], 500);
+        }
+
+        error_log("Clé utilisateur : " . $userKey);
+        
         // Dossier de stockage local (ex: public/uploads/tickets)
         $uploadDir = $this->getParameter('kernel.project_dir') . '/public/uploads/tickets';
         if (!is_dir($uploadDir)) {
@@ -180,11 +203,17 @@ class PaymentController extends AbstractController
         // Mise à jour de la clé et du chemin du fichier
         $order->setTicketKey($ticketKey);
         $order->setTicketPdfPath('/uploads/tickets/' . $filename);
+
+        // Générer la clé anti-fraude (SHA256 sur userKey + ticketKey)
+        $antiFraudKey = hash('sha256', $userKey . $ticketKey);
+        $order->setAntiFraudeKey($antiFraudKey);
+
         $this->em->flush();
 
         return $this->json([
             'success' => true,
             'file' => '/uploads/tickets/' . $filename,
+            'antiFraudKey' => $antiFraudKey,
             'message' => 'Ticket PDF enregistré avec succès'
         ]);
     }

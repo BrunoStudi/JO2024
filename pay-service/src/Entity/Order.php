@@ -35,6 +35,9 @@ class Order
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $ticketKey = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $antiFraudeKey = null;
+
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $ticketPdfPath = null;
 
@@ -125,6 +128,24 @@ class Order
     public function setTicketKey(?string $ticketKey): self
     {
         $this->ticketKey = $ticketKey;
+        return $this;
+    }
+
+
+    /**
+     * Get the fraude key associated with the order.
+     */
+    public function getAntiFraudeKey(): ?string
+    {
+        return $this->antiFraudeKey;
+    }
+
+    /**
+     * Set the fraude key (used to validate or identify a ticket with associated user).
+     */
+    public function setAntiFraudeKey(?string $antiFraudeKey): self
+    {
+        $this->antiFraudeKey = $antiFraudeKey;
         return $this;
     }
 
